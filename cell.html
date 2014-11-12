@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>The Grid</title>
+    <link rel="stylesheet" type="text/css" href="/static/main.css">
+
+</head>
+<body>
+    <div id="main"></div>
+    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script type="text/javascript">
+
+    function Grid(cols, rows) {
+        var id = _.identity
+        ,   all = _.range(0, cols * rows)
+        function map            (fn)    { return _.map(all, fn) }
+        function coords         (x)     { return [ Math.floor(x / rows), x % rows ]}
+        function prettyCoords   (x)     { return '(' + coords(x).join(',') + ')' }
+        function address        (c, r)  { return c + r * rows }
+        function distance       (c, r)  { return function (x) { return Math.max(
+            Math.abs(c - coords(x)[0]),
+            Math.abs(r - coords(x)[1])
+        )}}
+        function show(fn){ return _.chain(all)
+            .map(fn || id)
+            .reduce(function (memo, x, i) {
+                if (i % rows === 0) { memo.push([]) }
+                memo[memo.length - 1].push(x)
+                return memo
+            }, [])
+            .map(function (row) { return row.join('\t') })
+            .value()
+            .join('\n')
+        }
+        return {
+            all:            all,
+            map:            map,
+            show:           show,
+            coords:         coords,
+            address:        address,
+            distance:       distance,
+            prettyCoords:   prettyCoords,
+        }
+    }
+
+    var rows = 4
+    ,   cols = 4
+    ,   delay = 100
+    ,   grid = Grid(cols, rows)
+    ,   socket = io()
+    ,   black = 'rgb(0, 0, 0)'
+    ,   white = 'rgb(255, 255, 255)'
+    ,   $main = $('#main')
+    ,   id = +window.location.search.match(/(\d+)/)[0]
+
+    $main.css('background-color', black)
+
+    $main.on('click', function (ev) {
+        socket.emit('toggle', {
+            color: $main.css('background-color') === black ? white : black,
+            origin: id
+        })
+    })
+
+    socket.on('toggle', function(message){
+        var distance = grid.distance(
+            grid.coords(id)[0],
+            grid.coords(id)[1]
+        )
+        _.delay(function () {
+            $main.css('background-color', message.color)
+        }, distance(message.origin) * delay)
+    });
+    </script>
+</body>
+</html>

@@ -1,115 +1,27 @@
 <!doctype html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
-    <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body, html {
-        position: relative;
-        width: 100%;
-        height: 100%;
-      }
-      #main, #target {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-      }
-      .option {
-        float: left;
-      }
-      .option button {
-        padding: 5px;
-      }
-    </style>
+    <title>The Grid</title>
+    <link rel="stylesheet" type="text/css" href="/static/main.css">
   </head>
   <body>
 
     <div id="main"></div>
-
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
-    <script src=""></script>
     <script>
+    var rows = 4
+    ,   cols = 4
+    $('#main').html(_.chain(_.range(0, rows * cols)).map(function (i) {
+        return [
+          '\t',
+          '<div style="width:' + 100 / cols + '%" class="option" data-option="' + i + '">',
+          '<a href="/static/cell.html?option='+ i +'">Select</a>',
+          '</div>'
+        ].join('')
+      }).value().join('\n'))
 
-    function Grid(cols, rows) {
-        var id = _.identity
-        ,   all = _.range(0, cols * rows)
-        function map            (fn)    { return _.map(all, fn) }
-        function coords         (x)     { return [ Math.floor(x / rows), x % rows ]}
-        function prettyCoords   (x)     { return '(' + coords(x).join(',') + ')' }
-        function address        (c, r)  { return c + r * rows }
-        function distance       (c, r)  { return function (x) { return Math.max(
-            Math.abs(c - coords(x)[0]),
-            Math.abs(r - coords(x)[1])
-        )}}
-        function show(fn){ return _.chain(all)
-            .map(fn || id)
-            .reduce(function (memo, x, i) {
-                if (i % rows === 0) { memo.push([]) }
-                memo[memo.length - 1].push(x)
-                return memo
-            }, [])
-            .map(function (row) { return row.join('\t') })
-            .value()
-            .join('\n')
-        }
-        return {
-            all:            all,
-            map:            map,
-            show:           show,
-            coords:         coords,
-            address:        address,
-            distance:       distance,
-            prettyCoords:   prettyCoords,
-        }
-    }
 
-    var rows = 3, cols = 3
-    var grid = Grid(cols, rows)
-    var $main = $('#main')
-    var delay = 100, i
-
-    var socket = io();
-    var black = 'rgb(0, 0, 0)'
-    var white = 'rgb(255, 255, 255)'
-
-    function toggle() {
-      return $('#target').css('background-color') === black ? white : black
-    }
-
-    var options = [
-      '<div id="options">',
-      _.chain(_.range(0, rows * cols)).map(function (i) {
-        return '\t<div style="width:' + 100 / cols + '%" class="option" data-option="' + i + '"><button>Select</button></div>'
-      }).value().join('\n'),
-      '</div>'
-    ].join('\n')
-
-    $main.html(options)
-
-    _.defer(function () {
-      $('.option').on('click', function (ev) {
-        i = $(ev.currentTarget).data('option')
-        $main.html('<div id="target"></div>')
-        _.defer(function () {
-          $('#target').css('background-color', black)
-          $('#target').on('click', function (ev) {
-            socket.emit('toggle', {
-              color: toggle(),
-              origin: i
-            })
-          })
-        })
-      })
-    })
-
-    socket.on('toggle', function(message){
-      var d = grid.distance(grid.coords(i)[0], grid.coords(i)[1])(message.origin)
-      _.delay(function () {
-        $('#target').css('background-color', message.color)
-      }, d * delay)
-    });
     </script>
   </body>
 </html>
