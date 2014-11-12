@@ -11,7 +11,9 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
     <script src="/static/grid.js"></script>
+    <script src="/static/colors.js"></script>
     <script type="text/javascript">
+    console.log(window.colors.length)
 
     var rows = Grid.rows
     ,   cols = Grid.cols
@@ -23,10 +25,14 @@
     ,   $main = $('#main')
     ,   id = +window.location.search.match(/(\d+)/)[0]
 
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     $main.css('background-color', black)
     $main.on('click', function (ev) {
         socket.emit('toggle', {
-            color: $main.css('background-color') === black ? white : black,
+            color: window.colors[randomInt(0, window.colors.length)],
             origin: id
         })
     })
