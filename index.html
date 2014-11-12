@@ -9,9 +9,10 @@
     <div id="main"></div>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <script src="/static/grid.js"></script>
     <script>
-    var rows = 4
-    ,   cols = 4
+    var rows = Grid.rows
+    ,   cols = Grid.cols
     $('#main').html(_.chain(_.range(0, rows * cols)).map(function (i) {
         return [
           '\t',
