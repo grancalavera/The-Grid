@@ -21,75 +21,118 @@
             <button type="submit">Enter</button>
         </form>
     </script>
-    <script type="text/template" id="t-reset">
-        <a class="reset" href="/"></a>
+    <script type="text/template" id="t-controls">
+        <a class="reset" href="/">R</a>
+        <a class="pulse">P</a>
     </script>
 
-    <script type="text/javascript">
-    $(function () {
+<script type="text/javascript">$(function () {
 
-        var grid            = Grid.make(15, 6)
-        ,   socket          = io()
-        ,   delay           = 100
-        ,   $body           = $('body')
-        ,   $main           = $('#main')
-        ,   $prompt         = $('#prompt')
-        ,   resetPrompt     = _.template($('#t-reset').html())
-        ,   registerPrompt  = _.template($('#t-register').html())
+    var grid            = Grid.make(15, 6)
+    ,   socket          = io()
+    ,   delay           = 100
+    ,   $body           = $('body')
+    ,   $main           = $('#main')
+    ,   $prompt         = $('#prompt')
+    ,   controlsPrompt     = _.template($('#t-controls').html())
+    ,   registerPrompt  = _.template($('#t-register').html())
+    ,   sendPulse
+    ,   controlsPulse
 
-        function randomInt(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+    function pulse(fn, frequency, loop) {
+        var pulsing = false
+        ,   id
+        ,   p = {}
+        p.start = function() {
+            p.stop()
+            id = setTimeout(function() {
+                fn()
+                if (loop) { p.start() }
+            }, frequency || 1000)
         }
-
-        function randomColor() {
-            return colors[randomInt(0, colors.length)]
+        p.stop = function() {
+            clearTimeout(id)
+            id = undefined
+        },
+        p.pulsing = function() {
+            return _.isNumber(id)
         }
+        return p
+    }
 
-        function address() {
-            return URI(window.location).search(true).address
+
+    function toggleControls(value) {
+        $body.toggleClass('controls', !!value)
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function randomColor() {
+        return colors[randomInt(0, colors.length)]
+    }
+
+    function address() {
+        return URI(window.location).search(true).address
+    }
+
+    function needsAddress() {
+        return !address()
+    }
+
+    function showPrompt(prompt, fullscreen) {
+        $prompt.toggleClass('fullscreen', !!fullscreen)
+        $prompt.html(prompt())
+    }
+
+    function start() {
+        if (needsAddress()) {
+            showPrompt(registerPrompt, true)
+        } else {
+            showPrompt(controlsPrompt)
         }
+    }
 
-        function needsAddress() {
-            return !address()
-        }
+    function distance(toAddress) {
+        return grid.distance(
+            grid.coords(address())[0],
+            grid.coords(address())[1]
+        )(toAddress)
+    }
 
-        function showPrompt(prompt, fullscreen) {
-            $prompt.toggleClass('fullscreen', !!fullscreen)
-            $prompt.html(prompt())
-        }
-
-        function start() {
-            if (needsAddress()) {
-                showPrompt(registerPrompt, true)
-            } else {
-                showPrompt(resetPrompt)
-            }
-        }
-
-        function distance(toAddress) {
-            return grid.distance(
-                grid.coords(address())[0],
-                grid.coords(address())[1]
-            )(toAddress)
-        }
-
-
-
-        $body.on('click #main', function (ev) {
-            socket.emit('toggle', {
-                color: randomColor(),
-                address: address()
-            })
+    function send() {
+        socket.emit('toggle', {
+            color: randomColor(),
+            address: address()
         })
+    }
 
-        socket.on('toggle', function(message){
-            _.delay(function () {
-                $main.css('background-color', message.color)
-            }, distance(message.address) * delay)
-        })
+    sendPulse = pulse(send, 600, true)
+    controlsPulse = pulse(toggleControls, 3000)
 
-        start()
+    $body.on('click', '#main', function(ev) {
+        send()
+        toggleControls(true)
+        controlsPulse.start()
     })
-    </script>
+
+    $body.on('click', '.pulse', function(ev) {
+        ev.stopPropagation()
+        if (sendPulse.pulsing()) {
+            sendPulse.stop()
+        } else {
+            sendPulse.start()
+        }
+    })
+
+    socket.on('toggle', function(message){
+        _.delay(function () {
+            $main.css('background-color', message.color)
+        }, distance(message.address) * delay)
+    })
+
+    start()
+})</script>
 </body>
 </html>
