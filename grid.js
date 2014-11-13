@@ -40,6 +40,6 @@ function mkexports(root, name) {
         }
     }
     exports.make = Grid
-    exports.rows = 5
-    exports.cols = 14
+    exports.rows = 2
+    exports.cols = 1
 }).apply(null, mkexports(this, 'Grid'))

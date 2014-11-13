@@ -1,26 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>The Grid</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="/static/main.css">
-  </head>
-  <body>
-
+</head>
+<body>
     <div id="main"></div>
-    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.7.0/underscore-min.js"></script>
+    <div id="prompt"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/static/vendor/jquery/dist/jquery.min.js"></script>
+    <script src="/static/vendor/lodash/dist/lodash.min.js"></script>
+    <script src="/static/vendor/URIjs/src/URI.min.js"></script>
     <script src="/static/grid.js"></script>
-    <script>
-    var rows = Grid.rows
-    ,   cols = Grid.cols
-    $('#main').html(_.chain(_.range(0, rows * cols)).map(function (i) {
-        return [
-          '\t',
-          '<div style="width:' + 100 / cols + '%" class="option" data-option="' + i + '">',
-          '<a href="/static/cell.html?option='+ i +'">Select</a>',
-          '</div>'
-        ].join('')
-      }).value().join('\n'))
+    <script src="/static/colors.js"></script>
+    <script type="text/template" id="t-register">
+        <form class="register">
+            <input name="address" placeholder="Address #" type="text" pattern="\d*" required >
+            <button type="submit">Enter</button>
+        </form>
     </script>
-  </body>
+    <script type="text/template" id="t-reset">
+        <a class="reset" href="/">r</a>
+    </script>
+
+    <script type="text/javascript">
+    $(function () {
+
+        var grid = Grid.make(Grid.cols, Grid.rows)
+        ,   socket = io()
+        ,   delay = 100
+        ,   black = 'rgb(0, 0, 0)'
+        ,   white = 'rgb(255, 255, 255)'
+        ,   $main = $('#main')
+        ,   $prompt = $('#prompt')
+        ,   registerPrompt = _.template($('#t-register').html())
+        ,   resetPrompt = _.template($('#t-reset').html())
+
+        function randomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function randomColor() {
+            return colors[randomInt(0, colors.length)]
+        }
+
+        function address() {
+            return URI(window.location).search(true).address
+        }
+
+        function needsAddress() {
+            return !address()
+        }
+
+        function showPrompt(prompt, fullscreen) {
+            $prompt.toggleClass('fullscreen', fullscreen)
+            $prompt.html(prompt())
+        }
+
+        function start() {
+            if (needsAddress()) {
+                showPrompt(registerPrompt, true)
+            } else {
+                showPrompt(resetPrompt)
+            }
+        }
+
+        $main.on('click', function (ev) {
+            socket.emit('toggle', {
+                color: randomColor(),
+                origin: address()
+            })
+        })
+
+        socket.on('toggle', function(message){
+            var distance = grid.distance(
+                grid.coords(address())[0],
+                grid.coords(address())[1]
+            )
+            _.delay(function () {
+                $main.css('background-color', message.color)
+            }, distance(message.origin) * delay)
+        })
+
+        start()
+    })
+    </script>
+</body>
 </html>

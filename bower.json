@@ -1,0 +1,21 @@
+{
+  "name": "The-Grid",
+  "main": "index.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/grancalavera/The-Grid",
+  "authors": [
+    "Leon Coto <leon.coto@mcsaatchi.com>"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "URIjs": "~1.14.1",
+    "lodash": "~2.4.1"
+  }
+}

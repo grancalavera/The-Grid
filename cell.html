@@ -13,7 +13,6 @@
     <script src="/static/grid.js"></script>
     <script src="/static/colors.js"></script>
     <script type="text/javascript">
-    console.log(window.colors.length)
 
     var rows = Grid.rows
     ,   cols = Grid.cols
@@ -29,7 +28,6 @@
         return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    $main.css('background-color', black)
     $main.on('click', function (ev) {
         socket.emit('toggle', {
             color: window.colors[randomInt(0, window.colors.length)],
@@ -45,7 +43,8 @@
         _.delay(function () {
             $main.css('background-color', message.color)
         }, distance(message.origin) * delay)
-    });
+    })
+
     </script>
 </body>
 </html>
