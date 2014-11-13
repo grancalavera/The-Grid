@@ -60,7 +60,6 @@
         return p
     }
 
-
     function toggleControls(value) {
         $body.toggleClass('controls', !!value)
     }
@@ -86,14 +85,6 @@
         $prompt.html(prompt())
     }
 
-    function start() {
-        if (needsAddress()) {
-            showPrompt(registerPrompt, true)
-        } else {
-            showPrompt(controlsPrompt)
-        }
-    }
-
     function distance(toAddress) {
         return grid.distance(
             grid.coords(address())[0],
@@ -106,6 +97,14 @@
             color: randomColor(),
             address: address()
         })
+    }
+
+    function start() {
+        if (needsAddress()) {
+            showPrompt(registerPrompt, true)
+        } else {
+            showPrompt(controlsPrompt)
+        }
     }
 
     sendPulse = pulse(send, 600, true)
@@ -133,6 +132,7 @@
     })
 
     start()
+
 })</script>
 </body>
 </html>
