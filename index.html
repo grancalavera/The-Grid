@@ -17,26 +17,25 @@
     <script src="/static/colors.js"></script>
     <script type="text/template" id="t-register">
         <form class="register">
-            <input name="address" placeholder="Address #" type="text" pattern="\d*" required >
+            <input name="address" placeholder="Address #" type="text" pattern="\d*" autocomplete="off"required >
             <button type="submit">Enter</button>
         </form>
     </script>
     <script type="text/template" id="t-reset">
-        <a class="reset" href="/">r</a>
+        <a class="reset" href="/"></a>
     </script>
 
     <script type="text/javascript">
     $(function () {
 
-        var grid = Grid.make(Grid.cols, Grid.rows)
-        ,   socket = io()
-        ,   delay = 100
-        ,   black = 'rgb(0, 0, 0)'
-        ,   white = 'rgb(255, 255, 255)'
-        ,   $main = $('#main')
-        ,   $prompt = $('#prompt')
-        ,   registerPrompt = _.template($('#t-register').html())
-        ,   resetPrompt = _.template($('#t-reset').html())
+        var grid            = Grid.make(15, 6)
+        ,   socket          = io()
+        ,   delay           = 100
+        ,   $body           = $('body')
+        ,   $main           = $('#main')
+        ,   $prompt         = $('#prompt')
+        ,   resetPrompt     = _.template($('#t-reset').html())
+        ,   registerPrompt  = _.template($('#t-register').html())
 
         function randomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -55,7 +54,7 @@
         }
 
         function showPrompt(prompt, fullscreen) {
-            $prompt.toggleClass('fullscreen', fullscreen)
+            $prompt.toggleClass('fullscreen', !!fullscreen)
             $prompt.html(prompt())
         }
 
@@ -67,21 +66,26 @@
             }
         }
 
-        $main.on('click', function (ev) {
+        function distance(toAddress) {
+            return grid.distance(
+                grid.coords(address())[0],
+                grid.coords(address())[1]
+            )(toAddress)
+        }
+
+
+
+        $body.on('click #main', function (ev) {
             socket.emit('toggle', {
                 color: randomColor(),
-                origin: address()
+                address: address()
             })
         })
 
         socket.on('toggle', function(message){
-            var distance = grid.distance(
-                grid.coords(address())[0],
-                grid.coords(address())[1]
-            )
             _.delay(function () {
                 $main.css('background-color', message.color)
-            }, distance(message.origin) * delay)
+            }, distance(message.address) * delay)
         })
 
         start()

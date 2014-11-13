@@ -1,15 +1,10 @@
-function mkexports(root, name) {
-    var isBrowser = typeof exports === 'undefined'
-    return [ root, isBrowser ? root[name] = {} : exports, !isBrowser ]
-}
-
 (function (root, exports, isNode) {
     var _ = root._ || require('lodash')
     function Grid(cols, rows) {
         var id = _.identity
         ,   all = _.range(0, cols * rows)
         function map            (fn)    { return _.map(all, fn) }
-        function coords         (x)     { return [ Math.floor(x / cols), x % cols ]}
+        function coords         (x)     { return [ x % cols, Math.floor(x / cols) ]}
         function prettyCoords   (x)     { return '(' + coords(x).join(',') + ')' }
         function address        (c, r)  { return c + r * rows }
         function distance       (c, r)  { return function (x) { return Math.max(
@@ -34,12 +29,11 @@ function mkexports(root, name) {
             coords:         coords,
             address:        address,
             distance:       distance,
-            prettyCoords:   prettyCoords,
-            rows: function() { return _.range(0, rows)},
-            cols: function() { return _.range(0, cols)},
+            prettyCoords:   prettyCoords
         }
     }
     exports.make = Grid
-    exports.rows = 2
-    exports.cols = 1
-}).apply(null, mkexports(this, 'Grid'))
+}).apply(null, function(root, name) {
+    var isBrowser = typeof exports === 'undefined'
+    return [ root, isBrowser ? root[name] = {} : exports, !isBrowser ]
+}(this, 'Grid'))
