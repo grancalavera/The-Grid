@@ -28,7 +28,7 @@
 
 <script type="text/javascript">$(function () {
 
-    var grid            = Grid.make(15, 6)
+    var grid            = Grid.make(10, 10)
     ,   socket          = io()
     ,   delay           = 100
     ,   $body           = $('body')
@@ -119,8 +119,10 @@
     $body.on('click', '.pulse', function(ev) {
         ev.stopPropagation()
         if (sendPulse.pulsing()) {
+            $('.pulse').removeClass('on')
             sendPulse.stop()
         } else {
+            $('.pulse').addClass('on')
             sendPulse.start()
         }
     })
